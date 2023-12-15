@@ -33,6 +33,13 @@ wifi:
   fast_connect: ${hidden_ssid}
   ap: {}
 
+external_components:
+  - source:
+      type: git
+      url: https://github.com/elithist/esphome
+      ref: KnxComponent
+    components: [ knx ]
+
 captive_portal:
 
 improv_serial:
@@ -142,17 +149,23 @@ binary_sensor:
         return id(occupancy).state;
       }
 uart:
-  id: uart_bus
-  tx_pin: GPIO13
-  rx_pin: GPIO14
-  baud_rate: 115200
-  debug:
-    direction: BOTH
-    dummy_receiver: true
-    after:
-      delimiter: "\n"
-    sequence:
-      - lambda: UARTDebug::log_string(direction, bytes);
+  - id: uart_bus
+    tx_pin: GPIO13
+    rx_pin: GPIO14
+    baud_rate: 115200
+    debug:
+      direction: BOTH
+      dummy_receiver: true
+      after:
+        delimiter: "\n"
+      sequence:
+        - lambda: UARTDebug::log_string(direction, bytes);
+
+  - id: uart_knx
+    tx_pin: 22
+    rx_pin: 23
+    baud_rate: 19200
+    parity: even
 
 switch:
   - platform: template
@@ -215,6 +228,12 @@ switch:
       - uart.write: "saveConfig"
       - delay: 3s
       - switch.turn_on: mmwave_sensor
+  - platform: gpio
+    id: light_output
+    name: "Desk Lamp"
+    pin:
+      number: 20
+      inverted: true
 
 number:
   - platform: template
@@ -425,3 +444,18 @@ button:
       - uart.write: "resetCfg"
       - delay: 3s
       - switch.turn_on: mmwave_sensor
+
+knx:
+  uart_id: uart_knx
+  use_address: 10.10.1
+  listen_group_address: ["0/0/3", "0/0/1"]
+  lambda: |-
+    KnxTelegram* telegram = knx.get_received_telegram();
+    if(telegram->get_target_group() == "0/0/3" ) {
+      if(telegram->get_bool()) {
+        id(light_output).turn_on();
+      } else {
+        id(light_output).turn_off();
+      }
+    }
+    return;
