@@ -68,7 +68,6 @@ output:
   - platform: template
     id: mmwave_led_output
     type: binary
-    uart_id: uart_bus
     write_action:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
@@ -76,11 +75,17 @@ output:
           condition:
             lambda: !lambda return state;
           then:
-            - uart.write: "setLedMode 1 0"
+            - uart.write:
+              data: "setLedMode 1 0"
+              uart_id: uart_bus
           else:
-            - uart.write: "setLedMode 1 1"
+            - uart.write:
+              data: "setLedMode 1 1"
+              uart_id: uart_bus
       - delay: 1s
-      - uart.write: "saveConfig"
+      - uart.write:
+        data: "saveConfig"
+        uart_id: uart_bus
       - delay: 3s
       - switch.turn_on: mmwave_sensor
 
@@ -172,46 +177,55 @@ switch:
   - platform: template
     name: mmWave sensor
     id: mmwave_sensor
-    uart_id: uart_bus
     disabled_by_default: True
     entity_category: config
     optimistic: true
     restore_mode: RESTORE_DEFAULT_ON
     turn_on_action:
-      - uart.write: "sensorStart"
+      - uart.write:
+        data: "sensorStart"
+        uart_id: uart_bus
       - delay: 1s
     turn_off_action:
-      - uart.write: "sensorStop"
+      - uart.write:
+        data: "sensorStop"
+        uart_id: uart_bus
       - delay: 1s
 
   - platform: template
     name: UART presence output
     id: uart_presence_output
-    uart_id: uart_bus
     entity_category: config
     internal: ${uart_presence_output_disabled}
     optimistic: true
     turn_on_action:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
-      - uart.write: "setUartOutput 1 1"
+      - uart.write:
+        data: "setUartOutput 1 1"
+        uart_id: uart_bus
       - delay: 1s
-      - uart.write: "saveConfig"
+      - uart.write:
+        data: "saveConfig"
+        uart_id: uart_bus
       - delay: 3s
       - switch.turn_on: mmwave_sensor
     turn_off_action:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
-      - uart.write: "setUartOutput 1 0"
+      - uart.write:
+        data: "setUartOutput 1 0"
+        uart_id: uart_bus
       - delay: 1s
-      - uart.write: "saveConfig"
+      - uart.write:
+        data: "saveConfig"
+        uart_id: uart_bus
       - delay: 3s
       - switch.turn_on: mmwave_sensor
 
   - platform: template
     name: UART target output
     id: uart_target_output
-    uart_id: uart_bus
     entity_category: config
     internal: ${uart_target_output_disabled}
     optimistic: true
@@ -219,17 +233,25 @@ switch:
     turn_on_action:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
-      - uart.write: "setUartOutput 2 1 1 1"
+      - uart.write:
+        data: "setUartOutput 2 1 1 1"
+        uart_id: uart_bus
       - delay: 1s
-      - uart.write: "saveConfig"
+      - uart.write:
+        data: "saveConfig"
+        uart_id: uart_bus
       - delay: 3s
       - switch.turn_on: mmwave_sensor
     turn_off_action:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
-      - uart.write: "setUartOutput 2 0"
+      - uart.write:
+        data: "setUartOutput 2 0"
+        uart_id: uart_bus
       - delay: 1s
-      - uart.write: "saveConfig"
+      - uart.write:
+        data: "saveConfig"
+        uart_id: uart_bus
       - delay: 3s
       - switch.turn_on: mmwave_sensor
   - platform: gpio
@@ -242,7 +264,6 @@ switch:
 number:
   - platform: template
     id: mmwave_distance
-    uart_id: uart_bus
     name: mmWave distance
     icon: mdi:arrow-left-right
     entity_category: config
@@ -257,11 +278,15 @@ number:
     set_action:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
-      - uart.write: !lambda int cm = (int)ceil(x / 15.0);
+      - uart.write:
+        data: !lambda int cm = (int)ceil(x / 15.0);
           std::string cms = "detRangeCfg -1 0 " + to_string(cm);
           return std::vector<unsigned char>(cms.begin(), cms.end());
+        uart_id: uart_bus
       - delay: 1s
-      - uart.write: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+      - uart.write:
+        data: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+        uart_id: uart_bus
       - delay: 1s
       - switch.turn_on: mmwave_sensor
 
@@ -270,7 +295,6 @@ number:
     icon: mdi:clock-end
     entity_category: config
     id: mmwave_off_latency
-    uart_id: uart_bus
     min_value: 1
     max_value: 600
     initial_value: 15
@@ -282,11 +306,15 @@ number:
     set_action:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
-      - uart.write: !lambda |-
+      - uart.write:
+        data: !lambda |-
           std::string mss = "setLatency " + to_string(id(mmwave_on_latency).state) + " " + to_string(id(mmwave_off_latency).state);
           return std::vector<unsigned char>(mss.begin(), mss.end());
+        uart_id: uart_bus
       - delay: 1s
-      - uart.write: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+      - uart.write:
+        data: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+        uart_id: uart_bus
       - delay: 1s
       - switch.turn_on: mmwave_sensor
 
@@ -294,7 +322,6 @@ number:
     name: mmWave on latency
     icon: mdi:clock-start
     id: mmwave_on_latency
-    uart_id: uart_bus
     entity_category: config
     min_value: 0
     max_value: 2
@@ -307,11 +334,15 @@ number:
     set_action:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
-      - uart.write: !lambda |-
+      - uart.write:
+        data: !lambda |-
           std::string mss = "setLatency " + to_string(id(mmwave_on_latency).state) + " " + to_string(id(mmwave_off_latency).state);
           return std::vector<unsigned char>(mss.begin(), mss.end());
+        uart_id: uart_bus
       - delay: 1s
-      - uart.write: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+      - uart.write:
+        data: "saveCfg 0x45670123 0xCDEF89AB 0x956128C6 0xDF54AC89"
+        uart_id: uart_bus
       - delay: 1s
       - switch.turn_on: mmwave_sensor
 
@@ -319,7 +350,6 @@ number:
     name: mmWave sensitivity
     icon: mdi:target-variant
     id: mmwave_sensitivity
-    uart_id: uart_bus
     entity_category: config
     min_value: 0
     max_value: 9
@@ -331,10 +361,14 @@ number:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
       - uart.write:
+        data:
           !lambda std::string mss = "setSensitivity " + to_string((int)x);
           return std::vector<unsigned char>(mss.begin(), mss.end());
+        uart_id: uart_bus
       - delay: 1s
-      - uart.write: "saveConfig"
+      - uart.write:
+        data: "saveConfig"
+        uart_id: uart_bus
       - delay: 1s
       - switch.turn_on: mmwave_sensor
 
@@ -423,11 +457,12 @@ button:
   - platform: template
     name: Restart mmWave sensor
     id: restart_mmwave
-    uart_id: uart_bus
     entity_category: config
     internal: true
     on_press:
-      - uart.write: "resetSystem"
+      - uart.write:
+        data: "resetSystem"
+        uart_id: uart_bus
   - platform: template
     name: Restart
     icon: mdi:restart
@@ -445,13 +480,14 @@ button:
     name: Factory reset mmWave
     icon: mdi:cog-counterclockwise
     id: factory_reset_mmwave
-    uart_id: uart_bus
     internal: ${factory_reset_disabled}
     entity_category: config
     on_press:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
-      - uart.write: "resetCfg"
+      - uart.write:
+        data: "resetCfg"
+        uart_id: uart_bus
       - delay: 3s
       - switch.turn_on: mmwave_sensor
 
