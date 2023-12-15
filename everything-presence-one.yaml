@@ -26,6 +26,14 @@ esp32:
 logger:
 
 api:
+  services:
+    - service: knx_write_group_bool
+      variables:
+        address: string
+        value: bool
+      then:
+        - lambda: |-
+            id(knxd).group_write_bool(address.c_str(), value);
 
 ota:
 
@@ -136,6 +144,17 @@ binary_sensor:
     device_class: motion
     filters:
       - delayed_off:  !lambda 'return id(pir_off_latency).state * 1000.0;'
+    on_state:
+      then:
+        - if:
+            condition:
+              binary_sensor.is_on: pir_motion_sensor
+            then:
+              - lambda: |-
+                  id(knxd).group_write_bool("0/0/3", true);
+            else:
+              - lambda: |-
+                  id(knxd).group_write_bool("0/0/3", false);
   - platform: template
     name: Occupancy
     id: occupancy
@@ -172,6 +191,13 @@ uart:
     rx_pin: 23
     baud_rate: 19200
     parity: even
+    debug:
+      direction: BOTH
+      dummy_receiver: false
+      after:
+        delimiter: "\n"
+      sequence:
+        - lambda: UARTDebug::log_binary(direction, bytes, 32);
 
 switch:
   - platform: template
@@ -492,6 +518,7 @@ button:
       - switch.turn_on: mmwave_sensor
 
 knx:
+  id: knxd
   uart_id: uart_knx
   use_address: 10.10.1
   listen_group_address: ["0/0/3", "0/0/1"]
