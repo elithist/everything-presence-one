@@ -68,6 +68,7 @@ output:
   - platform: template
     id: mmwave_led_output
     type: binary
+    uart_id: uart_bus
     write_action:
       - switch.turn_off: mmwave_sensor
       - delay: 1s
@@ -171,6 +172,7 @@ switch:
   - platform: template
     name: mmWave sensor
     id: mmwave_sensor
+    uart_id: uart_bus
     disabled_by_default: True
     entity_category: config
     optimistic: true
@@ -185,6 +187,7 @@ switch:
   - platform: template
     name: UART presence output
     id: uart_presence_output
+    uart_id: uart_bus
     entity_category: config
     internal: ${uart_presence_output_disabled}
     optimistic: true
@@ -208,6 +211,7 @@ switch:
   - platform: template
     name: UART target output
     id: uart_target_output
+    uart_id: uart_bus
     entity_category: config
     internal: ${uart_target_output_disabled}
     optimistic: true
@@ -238,6 +242,7 @@ switch:
 number:
   - platform: template
     id: mmwave_distance
+    uart_id: uart_bus
     name: mmWave distance
     icon: mdi:arrow-left-right
     entity_category: config
@@ -265,6 +270,7 @@ number:
     icon: mdi:clock-end
     entity_category: config
     id: mmwave_off_latency
+    uart_id: uart_bus
     min_value: 1
     max_value: 600
     initial_value: 15
@@ -288,6 +294,7 @@ number:
     name: mmWave on latency
     icon: mdi:clock-start
     id: mmwave_on_latency
+    uart_id: uart_bus
     entity_category: config
     min_value: 0
     max_value: 2
@@ -312,6 +319,7 @@ number:
     name: mmWave sensitivity
     icon: mdi:target-variant
     id: mmwave_sensitivity
+    uart_id: uart_bus
     entity_category: config
     min_value: 0
     max_value: 9
@@ -415,6 +423,7 @@ button:
   - platform: template
     name: Restart mmWave sensor
     id: restart_mmwave
+    uart_id: uart_bus
     entity_category: config
     internal: true
     on_press:
@@ -436,6 +445,7 @@ button:
     name: Factory reset mmWave
     icon: mdi:cog-counterclockwise
     id: factory_reset_mmwave
+    uart_id: uart_bus
     internal: ${factory_reset_disabled}
     entity_category: config
     on_press:
